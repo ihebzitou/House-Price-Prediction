@@ -71,6 +71,3 @@ def predict():
         app.logger.error(f"Prediction error: {str(e)}", exc_info=True)
         # Return a JSON error message
         return jsonify({'error': f'An error occurred during prediction: {str(e)}'}), 500
-
-if __name__ == "__main__":
-    app.run(debug=False, use_reloader=False)
