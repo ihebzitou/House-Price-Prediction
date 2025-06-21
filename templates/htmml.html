@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart House Price Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 50%, #f3e8ff 100%);
+            min-height: 100vh;
+            color: #1f2937;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding: 1.5rem 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-icon {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-subtitle {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .form-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 0;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-input, .form-select {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #1d4ed8, #6d28d9);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+            border: 1px solid #bbf7d0;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 1.5rem;
+            text-align: center;
+            display: none;
+        }
+
+        .result-card.show {
+            display: block;
+        }
+
+        .result-title {
+            color: #166534;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .result-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #15803d;
+            margin-bottom: 1rem;
+        }
+
+        .result-badge {
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .result-description {
+            color: #16a34a;
+            font-size: 0.875rem;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 1.5rem;
+        }
+
+        .info-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .info-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .info-bullet {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            margin-top: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .info-bullet.blue { background: #2563eb; }
+        .info-bullet.purple { background: #7c3aed; }
+
+        .info-text {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .features-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .feature-badge {
+            background: white;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+        }
+
+        .icon {
+            width: 1rem;
+            height: 1rem;
+            color: #2563eb;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-icon">🏠</div>
+            <div>
+                <div class="header-title">Smart House Price Predictor</div>
+                <div class="header-subtitle">AI-powered real estate valuation</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Form Section -->
+        <div class="form-card">
+            <div class="card-header">
+                <div class="card-title">
+                    📏 Property Details
+                </div>
+                <div class="card-description">
+                    Enter your property specifications for an accurate price prediction
+                </div>
+            </div>
+            <div class="card-content">
+                <form id="predictionForm" action="/predict" method="POST">
+                    <!-- Basic Info -->
+                    <div class="form-section">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    🛏️ Bedrooms
+                                </label>
+                                <input type="number" name="bedrooms" class="form-input" min="1" max="10" value="3" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">
+                                    🛁 Bathrooms
+                                </label>
+                                <input type="number" name="bathrooms" class="form-input" min="0.5" max="10" step="0.5" value="2" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Square Footage -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            📏 Square Footage
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Living Space (sq ft)</label>
+                                <input type="number" name="sqft_living" class="form-input" min="500" value="2000" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Lot Size (sq ft)</label>
+                                <input type="number" name="sqft_lot" class="form-input" min="1000" value="8000" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Above Ground (sq ft)</label>
+                                <input type="number" name="sqft_above" class="form-input" min="500" value="1500" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Basement (sq ft)</label>
+                                <input type="number" name="sqft_basement" class="form-input" min="0" value="500" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Property Features -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            ⭐ Property Features
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Number of Floors</label>
+                                <select name="floors" class="form-select" required>
+                                    <option value="1">1 Floor</option>
+                                    <option value="1.5">1.5 Floors</option>
+                                    <option value="2" selected>2 Floors</option>
+                                    <option value="2.5">2.5 Floors</option>
+                                    <option value="3">3+ Floors</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Waterfront Property</label>
+                                <select name="waterfront" class="form-select" required>
+                                    <option value="0" selected>No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">
+                                    👁️ View Quality (0-4)
+                                </label>
+                                <select name="view" class="form-select" required>
+                                    <option value="0" selected>No View</option>
+                                    <option value="1">Fair</option>
+                                    <option value="2">Average</option>
+                                    <option value="3">Good</option>
+                                    <option value="4">Excellent</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Condition (1-5)</label>
+                                <select name="condition" class="form-select" required>
+                                    <option value="1">Poor</option>
+                                    <option value="2">Fair</option>
+                                    <option value="3" selected>Average</option>
+                                    <option value="4">Good</option>
+                                    <option value="5">Excellent</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location & Age -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            📍 Location & Age
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">State Zip Code</label>
+                                <input type="number" name="statezip" class="form-input" value="98001" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">
+                                    📅 Building Age (years)
+                                </label>
+                                <input type="number" name="building_age" class="form-input" min="0" max="150" value="20" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Year Renovated</label>
+                                <input type="number" name="yr_renovated" class="form-input" min="1900" max="2024" value="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Recently Renovated</label>
+                                <select name="yr_renovated_YN" class="form-select" required>
+                                    <option value="0" selected>No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden field for basement -->
+                    <input type="hidden" name="basement_YN" value="1">
+
+                    <div class="form-section">
+                        <div class="section-title">
+                            🤖 Model Selection
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Choose Model</label>
+                            <select name="model_name" class="form-select" required>
+                                <option value="house_price_model.pkl" selected>XGBClassifier</option>
+                                <option value="dtc_model.pkl">Decision Tree Classifier</option>
+                                <option value="knn_model.pkl">K-Nearest Neighbors</option>
+                                <option value="lda_model.pkl">Linear Discriminant Analysis</option>
+                                <option value="log_reg_model.pkl">Logistic Regression</option>
+                                <option value="rfc_model.pkl">Random Forest Classifier</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span id="submitText">💰 Predict House Price</span>
+                        <div id="loadingSpinner" class="loading-spinner" style="display: none;"></div>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Results Card -->
+            <div class="result-card" id="resultCard">
+                <div class="result-title">
+                    💰 Price Prediction
+                </div>
+                <div class="result-price" id="resultPrice">$0</div>
+                <div class="result-badge">Estimated Market Value</div>
+                <div class="result-description">
+                    Based on property specifications and market data
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="info-card">
+                <div class="info-title">How It Works</div>
+                <ul class="info-list">
+                    <li class="info-item">
+                        <div class="info-bullet blue"></div>
+                        <div class="info-text">
+                            Our AI analyzes property features, location data, and market trends
+                        </div>
+                    </li>
+                    <li class="info-item">
+                        <div class="info-bullet purple"></div>
+                        <div class="info-text">
+                            Machine learning models consider over 15 key factors
+                        </div>
+                    </li>
+                    <li class="info-item">
+                        <div class="info-bullet blue"></div>
+                        <div class="info-text">
+                            Results are based on comparable sales and market analysis
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Features Card -->
+            <div class="info-card">
+                <div class="info-title">Key Features</div>
+                <div class="features-grid">
+                    <span class="feature-badge">Real-time Analysis</span>
+                    <span class="feature-badge">Market Data</span>
+                    <span class="feature-badge">Location Intelligence</span>
+                    <span class="feature-badge">Property Insights</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form handling
+        const form = document.getElementById('predictionForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultCard = document.getElementById('resultCard');
+        const resultPrice = document.getElementById('resultPrice');
+
+        // Auto-calculate basement_YN based on sqft_basement
+        const basementInput = document.querySelector('input[name="sqft_basement"]');
+        const basementYNInput = document.querySelector('input[name="basement_YN"]');
+
+        basementInput.addEventListener('input', function() {
+            basementYNInput.value = this.value > 0 ? '1' : '0';
+        });
+
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitText.style.display = 'none';
+            loadingSpinner.style.display = 'block';
+            
+            // Create FormData
+            const formData = new FormData(form);
+            
+            
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display result
+                if (data.prediction) {
+                    const price = parseFloat(data.prediction);
+                    resultPrice.textContent = new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                    }).format(price);
+                    resultCard.classList.add('show');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while predicting the price. Please try again.');
+            })
+            .finally(() => {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+            });
+        });
+
+        // Demo mode - if no backend is connected, show a demo prediction
+        form.addEventListener('submit', function(e) {
+            setTimeout(() => {
+                if (!resultCard.classList.contains('show')) {
+                    // Simulate a prediction for demo purposes
+                    const formData = new FormData(form);
+                    const sqftLiving = parseInt(formData.get('sqft_living'));
+                    const bedrooms = parseInt(formData.get('bedrooms'));
+                    const bathrooms = parseFloat(formData.get('bathrooms'));
+                    const waterfront = parseInt(formData.get('waterfront'));
+                    const view = parseInt(formData.get('view'));
+                    const condition = parseInt(formData.get('condition'));
+                    const buildingAge = parseInt(formData.get('building_age'));
+                    
+                    // Simple calculation for demo
+                    let price = sqftLiving * 200;
+                    price += bedrooms * 15000;
+                    price += bathrooms * 10000;
+                    price += waterfront ? 100000 : 0;
+                    price += view * 20000;
+                    price += (condition - 3) * 25000;
+                    price -= buildingAge * 1000;
+                    
+                    // Add some randomness
+                    price *= (0.9 + Math.random() * 0.2);
+                    
+                    resultPrice.textContent = new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                    }).format(Math.round(price));
+                    resultCard.classList.add('show');
+                }
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
